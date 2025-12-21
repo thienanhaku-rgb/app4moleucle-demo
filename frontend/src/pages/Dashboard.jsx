@@ -1,0 +1,225 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import Molecule3DViewer from '../components/Molecule3DViewer';
+import JSMEEditor from '../components/JSMEEditor';
+import axios from 'axios';
+import { Loader2, Atom, FlaskConical, History, Settings2, Share2, Download } from "lucide-react";
+
+const DASHBOARD_API = process.env.REACT_APP_BACKEND_URL + "/api/molecules";
+
+const Dashboard = () => {
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedModels, setSelectedModels] = useState(["model_a"]);
+  const [results, setResults] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [activeSmiles, setActiveSmiles] = useState(null); // The molecule currently being viewed in main 3D viewer
+  const [mode, setMode] = useState("generate"); // generate | edit
+
+  const handleGenerate = async () => {
+    if (!prompt) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(`${DASHBOARD_API}/generate`, {
+        prompt,
+        models: selectedModels
+      });
+      setResults(res.data.results);
+      if (res.data.results.length > 0) {
+        setActiveSmiles(res.data.results[0].smiles);
+        toast.success("Molecule generated successfully");
+      }
+      fetchHistory();
+    } catch (e) {
+      toast.error("Generation failed");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+        const res = await axios.get(`${DASHBOARD_API}/history`);
+        setHistory(res.data);
+    } catch(e) {
+        console.error("Failed to fetch history");
+    }
+  }
+
+  // Initial fetch
+  React.useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  return (
+    <div className="flex h-screen w-full bg-[#020408] text-slate-200 overflow-hidden font-sans">
+      
+      {/* Sidebar - History */}
+      <aside className="w-72 hidden md:flex flex-col border-r border-slate-800/50 bg-[#05080e]/90 backdrop-blur-xl z-20">
+        <div className="p-6 border-b border-slate-800/50">
+          <div className="flex items-center gap-2 text-lime-400 mb-1">
+             <Atom className="w-5 h-5 animate-spin-slow" />
+             <h1 className="font-bold tracking-wider font-display text-lg">VOID LAB</h1>
+          </div>
+          <p className="text-xs text-slate-500 uppercase tracking-widest">Molecular Synthesis</p>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+           <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">
+              <History className="w-3 h-3" /> Recent Syntheses
+           </div>
+           {history.map((record) => (
+             <div 
+               key={record.id} 
+               onClick={() => {
+                   setResults(record.results);
+                   if(record.results.length > 0) setActiveSmiles(record.results[0].smiles);
+                   setPrompt(record.prompt);
+               }}
+               className="group p-3 rounded-lg border border-slate-800/50 bg-slate-900/30 hover:bg-slate-800 hover:border-lime-500/30 transition-all cursor-pointer"
+             >
+                <div className="text-sm text-slate-300 font-medium truncate mb-1">{record.prompt}</div>
+                <div className="flex gap-2">
+                    {record.results.map((r, i) => (
+                        <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-lime-900/20 text-lime-400 border border-lime-500/10">
+                            {r.model_name}
+                        </span>
+                    ))}
+                </div>
+             </div>
+           ))}
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative h-full">
+        {/* Top Control Bar */}
+        <header className="h-16 border-b border-slate-800/50 flex items-center justify-between px-6 bg-[#020408]/80 backdrop-blur-md z-30">
+           <div className="flex items-center gap-4">
+              <Tabs value={mode} onValueChange={setMode} className="w-[200px]">
+                <TabsList className="bg-slate-900 border border-slate-800">
+                  <TabsTrigger value="generate" className="data-[state=active]:bg-lime-500 data-[state=active]:text-black font-mono text-xs">GENERATE</TabsTrigger>
+                  <TabsTrigger value="edit" className="data-[state=active]:bg-lime-500 data-[state=active]:text-black font-mono text-xs">EDITOR</TabsTrigger>
+                </TabsList>
+              </Tabs>
+           </div>
+           <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white"><Share2 className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white"><Download className="w-4 h-4" /></Button>
+              <div className="w-8 h-8 rounded-full bg-lime-500/20 border border-lime-500/50 flex items-center justify-center text-lime-400 font-bold text-xs">E1</div>
+           </div>
+        </header>
+
+        {/* Workspace */}
+        <div className="flex-1 relative overflow-hidden flex flex-col md:flex-row">
+            
+            {/* Left Panel: Input & Controls (Overlay on Mobile, Panel on Desktop) */}
+            <div className="w-full md:w-96 border-r border-slate-800/50 bg-[#020408] p-6 flex flex-col gap-6 z-10 overflow-y-auto">
+               
+               {mode === 'generate' && (
+                 <div className="space-y-6 animate-in slide-in-from-left duration-500">
+                    <div>
+                        <label className="text-xs text-lime-500 font-mono uppercase tracking-wider mb-2 block">Input Description</label>
+                        <textarea 
+                           className="w-full bg-slate-900/50 border border-slate-800 focus:border-lime-500/50 text-slate-200 p-4 min-h-[120px] rounded-lg resize-none font-light text-lg placeholder:text-slate-600 focus:ring-1 focus:ring-lime-500/20 transition-all"
+                           placeholder="e.g. A small organic molecule with an aromatic ring..."
+                           value={prompt}
+                           onChange={(e) => setPrompt(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                       <label className="text-xs text-slate-500 font-mono uppercase tracking-wider mb-3 block">Select Models</label>
+                       <div className="grid grid-cols-1 gap-2">
+                          {["model_a", "model_b", "model_c"].map(m => (
+                              <div key={m} className={`flex items-center p-3 rounded border cursor-pointer transition-all ${selectedModels.includes(m) ? 'bg-lime-500/10 border-lime-500/50' : 'bg-slate-900/30 border-slate-800 hover:border-slate-700'}`}
+                                   onClick={() => {
+                                       if(selectedModels.includes(m)) setSelectedModels(prev => prev.filter(x => x !== m));
+                                       else setSelectedModels(prev => [...prev, m]);
+                                   }}
+                              >
+                                  <div className={`w-3 h-3 rounded-full mr-3 ${selectedModels.includes(m) ? 'bg-lime-400 shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-slate-700'}`} />
+                                  <span className="text-sm font-mono uppercase text-slate-300">{m.replace('_', ' ').toUpperCase()}</span>
+                              </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    <Button 
+                       onClick={handleGenerate} 
+                       disabled={loading || !prompt}
+                       className="w-full bg-lime-500 hover:bg-lime-400 text-black font-bold h-12 uppercase tracking-widest shadow-[0_0_20px_rgba(132,204,22,0.2)] hover:shadow-[0_0_30px_rgba(132,204,22,0.4)] transition-all"
+                    >
+                       {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical className="mr-2 h-4 w-4" />}
+                       Initiate Synthesis
+                    </Button>
+                 </div>
+               )}
+
+               {mode === 'edit' && (
+                  <div className="h-full flex flex-col gap-4 animate-in slide-in-from-left duration-500">
+                      <div className="text-xs text-lime-500 font-mono uppercase tracking-wider">2D Structural Editor</div>
+                      <div className="flex-1 min-h-[300px] border border-slate-800 rounded bg-white relative">
+                          <JSMEEditor onChange={(s) => setActiveSmiles(s)} initialSmiles={activeSmiles} />
+                      </div>
+                      <p className="text-xs text-slate-500 text-center">Draw structure to update 3D View</p>
+                  </div>
+               )}
+
+            </div>
+
+            {/* Right Panel: Visualization */}
+            <div className="flex-1 bg-[#05080e] relative">
+               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+               
+               {activeSmiles ? (
+                   <div className="w-full h-full p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Main Viewer */}
+                      <div className={`relative ${results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'} h-full flex flex-col gap-2`}>
+                         <Molecule3DViewer smiles={activeSmiles} className="flex-1" />
+                         <div className="flex justify-between items-center px-2">
+                            <span className="font-mono text-xs text-slate-500">SMILES: <span className="text-lime-400 select-all">{activeSmiles.substring(0, 30)}...</span></span>
+                            <div className="flex gap-2">
+                                <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">CONFIDENCE: 98.2%</span>
+                            </div>
+                         </div>
+                      </div>
+
+                      {/* Comparison View (if multiple results) */}
+                      {results.length > 1 && (
+                         <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2">
+                            {results.filter(r => r.smiles !== activeSmiles).map((res, idx) => (
+                               <div key={idx} className="h-1/2 min-h-[200px] relative group cursor-pointer border border-slate-800 hover:border-lime-500/50 rounded-lg overflow-hidden transition-all"
+                                    onClick={() => setActiveSmiles(res.smiles)}>
+                                   <Molecule3DViewer smiles={res.smiles} />
+                                   <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-1 text-[10px] text-lime-400 border border-lime-500/30 rounded">
+                                       {res.model_name.toUpperCase()}
+                                   </div>
+                               </div>
+                            ))}
+                         </div>
+                      )}
+                   </div>
+               ) : (
+                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-600">
+                       <Atom className="w-24 h-24 mb-6 opacity-20 animate-pulse" />
+                       <h2 className="text-2xl font-light tracking-widest text-slate-500">SYSTEM IDLE</h2>
+                       <p className="text-sm font-mono mt-2 text-slate-700">AWAITING MOLECULAR INPUT</p>
+                   </div>
+               )}
+
+            </div>
+
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Dashboard;
