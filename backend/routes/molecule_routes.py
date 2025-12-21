@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
-from ..models import MoleculeGenerationRequest, GenerationRecord, GenerationHistoryResponse
-from ..services.molecule_service import generate_molecules
+from models import MoleculeGenerationRequest, GenerationRecord, GenerationHistoryResponse
+from services.molecule_service import generate_molecules
 
 router = APIRouter(prefix="/molecules", tags=["molecules"])
 
