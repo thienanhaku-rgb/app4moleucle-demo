@@ -7,8 +7,12 @@ export function cn(...inputs) {
 
 export function getApiUrl(path) {
     let baseUrl = process.env.REACT_APP_BACKEND_URL;
+    console.log('Original baseUrl:', baseUrl);
     if (baseUrl && baseUrl.startsWith('http:')) {
         baseUrl = baseUrl.replace('http:', 'https:');
+        console.log('Fixed baseUrl to HTTPS:', baseUrl);
     }
-    return `${baseUrl}${path}`;
+    const finalUrl = `${baseUrl}${path}`;
+    console.log('Final API URL:', finalUrl);
+    return finalUrl;
 }
