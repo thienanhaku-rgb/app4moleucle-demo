@@ -188,6 +188,87 @@ class MoleculeAPITester:
         )
         return success, response
 
+    # Knowledge Base API Tests
+    def test_knowledge_chat_aspirin(self):
+        """Test knowledge base chat with Aspirin query"""
+        success, response = self.run_test(
+            "Knowledge Chat - Aspirin",
+            "POST",
+            "api/knowledge/chat",
+            200,
+            data={"query": "Tell me about Aspirin"}
+        )
+        
+        if success and 'answer' in response:
+            print(f"✅ Answer received: {response['answer'][:100]}...")
+            if 'C9H8O4' in response['answer']:
+                print("✅ Correct Aspirin formula (C9H8O4) found in response")
+            else:
+                print("⚠️  Aspirin formula not found in response")
+            
+            if 'sources' in response and response['sources']:
+                print(f"✅ Sources provided: {response['sources']}")
+        
+        return success, response
+
+    def test_knowledge_chat_ethanol(self):
+        """Test knowledge base chat with Ethanol query"""
+        success, response = self.run_test(
+            "Knowledge Chat - Ethanol",
+            "POST",
+            "api/knowledge/chat",
+            200,
+            data={"query": "What is Ethanol?"}
+        )
+        
+        if success and 'answer' in response:
+            print(f"✅ Answer received: {response['answer'][:100]}...")
+            if 'C2H5OH' in response['answer']:
+                print("✅ Correct Ethanol formula (C2H5OH) found in response")
+            else:
+                print("⚠️  Ethanol formula not found in response")
+        
+        return success, response
+
+    def test_knowledge_chat_unknown(self):
+        """Test knowledge base chat with unknown chemical"""
+        success, response = self.run_test(
+            "Knowledge Chat - Unknown Chemical",
+            "POST",
+            "api/knowledge/chat",
+            200,
+            data={"query": "Unknown chemical"}
+        )
+        
+        if success and 'answer' in response:
+            print(f"✅ Fallback answer received: {response['answer'][:100]}...")
+            # Check if it's a fallback response
+            if "don't have specific data" in response['answer'] or "general" in response['answer'].lower():
+                print("✅ Correct fallback response detected")
+            else:
+                print("⚠️  Expected fallback response not detected")
+        
+        return success, response
+
+    def test_knowledge_chat_caffeine(self):
+        """Test knowledge base chat with Caffeine query"""
+        success, response = self.run_test(
+            "Knowledge Chat - Caffeine",
+            "POST",
+            "api/knowledge/chat",
+            200,
+            data={"query": "caffeine"}
+        )
+        
+        if success and 'answer' in response:
+            print(f"✅ Answer received: {response['answer'][:100]}...")
+            if 'C8H10N4O2' in response['answer']:
+                print("✅ Correct Caffeine formula (C8H10N4O2) found in response")
+            else:
+                print("⚠️  Caffeine formula not found in response")
+        
+        return success, response
+
 def main():
     print("🧪 Starting Molecule API Testing...")
     print("=" * 50)
