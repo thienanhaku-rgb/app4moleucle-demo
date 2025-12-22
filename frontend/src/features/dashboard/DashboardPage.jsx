@@ -8,8 +8,10 @@ import { useDebounce } from '@/hooks/use-debounce';
 import axios from 'axios';
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Loader2, Sparkles, CheckCircle2, ChevronRight 
+  Loader2, Sparkles, CheckCircle2, ChevronRight, ChevronLeft,
+  LayoutList, Box, Maximize2
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const DASHBOARD_API = process.env.REACT_APP_BACKEND_URL + "/api/molecules";
 
@@ -20,7 +22,9 @@ export default function DashboardPage() {
   const [results, setResults] = useState([]);
   const [history, setHistory] = useState([]);
   const [activeSmiles, setActiveSmiles] = useState(null); 
+  const [activeModel, setActiveModel] = useState(null); // Track which model is active
   const [mode, setMode] = useState("generate"); // generate | edit
+  const [isResultListOpen, setIsResultListOpen] = useState(true); // Toggle comparison list
 
   const debouncedSmiles = useDebounce(activeSmiles, 800);
 
@@ -34,7 +38,10 @@ export default function DashboardPage() {
       });
       setResults(res.data.results);
       if (res.data.results.length > 0) {
-        setActiveSmiles(res.data.results[0].smiles);
+        const first = res.data.results[0];
+        setActiveSmiles(first.smiles);
+        setActiveModel(first.model_name);
+        setIsResultListOpen(true); // Open list on new generation
         toast.success("Molecule generated successfully");
       }
       fetchHistory();
@@ -64,7 +71,11 @@ export default function DashboardPage() {
         history={history} 
         onHistoryClick={(record) => {
             setResults(record.results);
-            if(record.results.length > 0) setActiveSmiles(record.results[0].smiles);
+            if(record.results.length > 0) {
+                const first = record.results[0];
+                setActiveSmiles(first.smiles);
+                setActiveModel(first.model_name);
+            }
             setPrompt(record.prompt);
         }}
         mode={mode}
@@ -72,7 +83,7 @@ export default function DashboardPage() {
     >
         <div className="flex-1 relative overflow-hidden flex flex-col md:flex-row h-full">
             
-            {/* Left Panel */}
+            {/* Left Panel - Input/Editor */}
             <motion.div 
                 layout
                 className={`
@@ -179,12 +190,13 @@ export default function DashboardPage() {
                 </AnimatePresence>
             </motion.div>
 
-            {/* Right Panel: Visualization */}
+            {/* Right Panel: Visualization & Results */}
             <div className="flex-1 bg-muted/20 relative flex flex-col p-6 overflow-hidden">
                 {/* Background Decor */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
+                {/* Header for View */}
                 <div className="flex items-center justify-between mb-4 relative z-10">
                    <div className="flex items-center gap-3">
                        <h3 className="text-sm font-bold text-foreground tracking-wide flex items-center gap-2">
@@ -194,12 +206,17 @@ export default function DashboardPage() {
                        <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded-md">interactive</span>
                    </div>
                    
-                   {activeSmiles && (
-                       <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                               LIVE RENDER
-                           </span>
-                       </div>
+                   {/* Toggle Results List Button */}
+                   {mode === 'generate' && results.length > 0 && (
+                       <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsResultListOpen(!isResultListOpen)}
+                          className="h-8 text-xs font-semibold gap-2 border-border/50 bg-background/50 backdrop-blur hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                       >
+                          <LayoutList className="w-3.5 h-3.5" />
+                          {isResultListOpen ? "Hide Results" : "Show Results"}
+                       </Button>
                    )}
                 </div>
 
@@ -207,18 +224,26 @@ export default function DashboardPage() {
                    <motion.div 
                      initial={{ opacity: 0, y: 20 }}
                      animate={{ opacity: 1, y: 0 }}
-                     className={`w-full h-full grid grid-cols-1 ${mode === 'generate' && results.length > 1 ? 'md:grid-cols-2 gap-6' : 'grid-cols-1'}`}
+                     className="w-full h-full flex gap-6 relative"
                    >
-                      {/* Main Viewer */}
-                      <div className={`relative h-full flex flex-col gap-4 ${mode === 'generate' && results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'}`}>
+                      {/* Main Viewer - Takes remaining space */}
+                      <div className="flex-1 flex flex-col gap-4 min-w-0 transition-all duration-300">
                          <div className="flex-1 rounded-2xl overflow-hidden border-2 border-border/50 shadow-lg bg-card relative group hover:border-primary/30 transition-all">
                             <Molecule3DViewer smiles={debouncedSmiles || activeSmiles} className="w-full h-full" />
                             
-                            {/* Floating Overlay Controls Mockup */}
-                            <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-8 h-8 rounded-lg bg-background/80 backdrop-blur border border-border flex items-center justify-center shadow-sm cursor-pointer hover:bg-primary hover:text-white transition-colors">
-                                    <ChevronRight className="w-4 h-4 rotate-90" />
+                            {/* Active Model Label */}
+                            {activeModel && (
+                                <div className="absolute top-4 left-4 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg border border-border shadow-sm flex items-center gap-2">
+                                    <Box className="w-3.5 h-3.5 text-primary" />
+                                    <span className="text-xs font-bold uppercase">{activeModel.replace('_', ' ')}</span>
                                 </div>
+                            )}
+
+                            {/* Expand/Maximize Button (Mockup) */}
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="icon" variant="secondary" className="h-8 w-8 rounded-lg bg-background/80 backdrop-blur shadow-sm">
+                                    <Maximize2 className="w-4 h-4" />
+                                </Button>
                             </div>
                          </div>
                          
@@ -235,26 +260,59 @@ export default function DashboardPage() {
                          )}
                       </div>
 
-                      {/* Comparison View */}
-                      {mode === 'generate' && results.length > 1 && (
-                         <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2 pb-2">
-                            {results.filter(r => r.smiles !== activeSmiles).map((res, idx) => (
-                               <motion.div 
-                                    key={idx}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.1 * idx }}
-                                    className="h-1/2 min-h-[240px] relative group cursor-pointer border-2 border-border/50 hover:border-primary bg-card rounded-2xl overflow-hidden transition-all shadow-md hover:shadow-xl hover:-translate-y-1"
-                                    onClick={() => setActiveSmiles(res.smiles)}
-                               >
-                                   <Molecule3DViewer smiles={res.smiles} />
-                                   <div className="absolute top-3 left-3 bg-background/90 backdrop-blur px-3 py-1.5 text-xs font-bold text-foreground border border-border rounded-lg shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
-                                       {res.model_name.toUpperCase()}
-                                   </div>
-                               </motion.div>
-                            ))}
-                         </div>
+                      {/* Collapsible Results List (Sidebar Style) */}
+                      <AnimatePresence>
+                      {mode === 'generate' && results.length > 0 && isResultListOpen && (
+                         <motion.div 
+                            initial={{ width: 0, opacity: 0, x: 20 }}
+                            animate={{ width: 280, opacity: 1, x: 0 }}
+                            exit={{ width: 0, opacity: 0, x: 20 }}
+                            className="flex-shrink-0 flex flex-col gap-3 overflow-hidden"
+                         >
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-1">Generated Candidates</div>
+                            <div className="flex-1 overflow-y-auto pr-1 space-y-3 pb-2 scrollbar-hide">
+                                {results.map((res, idx) => {
+                                   const isActive = res.smiles === activeSmiles;
+                                   return (
+                                       <motion.div 
+                                            key={idx}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.05 * idx }}
+                                            className={cn(
+                                                "relative group cursor-pointer border-2 rounded-xl overflow-hidden transition-all shadow-sm p-1",
+                                                isActive 
+                                                    ? "border-primary bg-primary/5 shadow-md scale-[1.02]" 
+                                                    : "border-border/50 bg-card hover:border-primary/50 hover:bg-muted/30"
+                                            )}
+                                            onClick={() => {
+                                                setActiveSmiles(res.smiles);
+                                                setActiveModel(res.model_name);
+                                            }}
+                                       >
+                                           <div className="h-32 rounded-lg overflow-hidden bg-background relative pointer-events-none">
+                                               {/* Mini Preview - reusing viewer but static if possible, or just simpler view */}
+                                               <Molecule3DViewer smiles={res.smiles} />
+                                           </div>
+                                           
+                                           <div className="p-3">
+                                               <div className="flex justify-between items-center mb-1">
+                                                   <span className={cn("text-xs font-bold uppercase", isActive ? "text-primary" : "text-foreground")}>
+                                                       {res.model_name.replace('_', ' ')}
+                                                   </span>
+                                                   {isActive && <CheckCircle2 className="w-3.5 h-3.5 text-primary" />}
+                                               </div>
+                                               <div className="text-[10px] text-muted-foreground font-mono truncate">
+                                                   Confidence: {(res.confidence * 100).toFixed(1)}%
+                                               </div>
+                                           </div>
+                                       </motion.div>
+                                   );
+                                })}
+                            </div>
+                         </motion.div>
                       )}
+                      </AnimatePresence>
                    </motion.div>
                ) : (
                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center relative">
