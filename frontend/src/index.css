@@ -34,92 +34,71 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-spin-slow: spin 3s linear infinite;
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-    to {
-      height: 0;
-    }
-  }
 }
 
 @layer base {
   :root {
-    /* Light Mode (Clean, Professional, Lab-like) */
-    --background: 210 40% 98%; /* Soft White/Blueish */
-    --foreground: 222 47% 11%; /* Dark Blue/Grey */
+    /* Light Mode: Zinc + Indigo */
+    --background: 0 0% 100%;       /* Pure White */
+    --foreground: 240 10% 3.9%;    /* Zinc 950 */
     
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 3.9%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 3.9%;
     
-    --primary: 221 83% 53%; /* Vivid Blue */
-    --primary-foreground: 210 40% 98%;
+    --primary: 226 71% 55%;        /* Modern Indigo */
+    --primary-foreground: 0 0% 98%;
     
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 4.8% 95.9%;   /* Zinc 100 */
+    --secondary-foreground: 240 5.9% 10%;
     
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
     
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
     
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 226 71% 55%;
     
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* More rounded = friendlier */
   }
 
   .dark {
-    /* Dark Mode (Void Lab - Deep & Sci-Fi) */
-    --background: 224 71% 4%; /* Deep Void */
-    --foreground: 210 40% 98%;
+    /* Dark Mode: Deep Zinc/Slate + Bright Indigo */
+    --background: 240 10% 3.9%;    /* Zinc 950 */
+    --foreground: 0 0% 98%;
     
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
     
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
     
-    --primary: 84 81% 44%; /* Acid Green */
-    --primary-foreground: 0 0% 0%;
+    --primary: 226 71% 60%;        /* Slightly lighter Indigo */
+    --primary-foreground: 0 0% 98%;
     
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;   /* Zinc 800 */
+    --secondary-foreground: 0 0% 98%;
     
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
     
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
     
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 84 81% 44%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 226 71% 60%;
   }
 }
 
@@ -128,11 +107,23 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground transition-colors duration-300;
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-300;
+  }
+  
+  /* Smooth Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
   }
 }
 
-/* Custom fonts */
+/* Typography Utilities */
 .font-display {
     font-family: 'Manrope', sans-serif;
 }

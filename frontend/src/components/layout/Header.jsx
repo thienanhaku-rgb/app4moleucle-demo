@@ -1,55 +1,84 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRightLeft, Sun, Moon, Share2, Download, Bell } from "lucide-react";
+import { ArrowRightLeft, Sun, Moon, Share2, Bell, Search, UserCircle } from "lucide-react";
 import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 
 export function Header({ mode, setMode }) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-6 transition-colors duration-300">
-       <div className="flex items-center gap-6">
-          <Tabs value={mode} onValueChange={setMode} className="w-[240px]">
-            <TabsList className="bg-muted border border-border h-9">
-              <TabsTrigger value="generate" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">GENERATOR</TabsTrigger>
-              <TabsTrigger value="edit" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">EDITOR</TabsTrigger>
-            </TabsList>
-          </Tabs>
+    <motion.header 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="h-20 px-8 flex items-center justify-between sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50"
+    >
+       <div className="flex items-center gap-8">
+          {/* Mode Switcher */}
+          <div className="bg-muted/50 p-1 rounded-xl border border-border/50">
+            <Tabs value={mode} onValueChange={setMode} className="w-[280px]">
+              <TabsList className="bg-transparent border-0 h-10 gap-1 w-full">
+                <TabsTrigger 
+                  value="generate" 
+                  className="w-1/2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:font-bold transition-all text-muted-foreground"
+                >
+                  GENERATOR
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="edit" 
+                  className="w-1/2 rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:font-bold transition-all text-muted-foreground"
+                >
+                  EDITOR
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
           
           {mode === 'edit' && (
-              <span className="hidden md:flex items-center gap-2 text-xs font-mono text-primary animate-pulse">
-                  <ArrowRightLeft className="w-3.5 h-3.5"/> 
-                  SYNC ACTIVE
-              </span>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20"
+              >
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-primary animate-pulse"/> 
+                  <span className="text-xs font-mono font-semibold text-primary">REAL-TIME SYNC</span>
+              </motion.div>
           )}
        </div>
 
-       <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-muted-foreground hover:text-foreground"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-          </Button>
+       <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-full border border-border/50">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-background"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+            </Button>
 
-          <div className="w-px h-4 bg-border mx-1" />
-
-          <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground">
-              <Bell className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="w-9 h-9 text-muted-foreground hover:text-foreground">
-              <Share2 className="w-4 h-4" />
-          </Button>
+            <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-background">
+                <Bell className="w-4 h-4" />
+            </Button>
+            
+            <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-background">
+                <Search className="w-4 h-4" />
+            </Button>
+          </div>
           
-          <div className="ml-2 w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-xs shadow-lg">
-             E1
+          <div className="pl-4 border-l border-border/50 flex items-center gap-3 cursor-pointer group">
+             <div className="flex flex-col items-end hidden sm:flex">
+                <span className="text-sm font-semibold text-foreground leading-none">Dr. Chemist</span>
+                <span className="text-[10px] text-muted-foreground">Premium Plan</span>
+             </div>
+             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center text-primary-foreground font-bold shadow-lg ring-2 ring-background group-hover:scale-105 transition-transform">
+                DC
+             </div>
           </div>
        </div>
-    </header>
+    </motion.header>
   );
 }

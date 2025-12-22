@@ -1,99 +1,166 @@
 import React, { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Atom, History, ChevronLeft, ChevronRight, Settings, FlaskConical, LayoutGrid, FileText } from "lucide-react";
+import { 
+  Atom, History, ChevronLeft, ChevronRight, 
+  FlaskConical, LayoutGrid, FileText, Settings, BookOpen 
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function Sidebar({ className, history, onHistoryClick, isCollapsed, toggleCollapse }) {
+  const [activeItem, setActiveItem] = useState("Dashboard");
+
   return (
-    <aside 
+    <motion.aside 
+      initial={false}
+      animate={{ width: isCollapsed ? 72 : 280 }}
       className={cn(
-        "flex flex-col border-r border-border bg-card/80 backdrop-blur-xl z-20 transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
+        "flex flex-col border-r border-border bg-card/50 backdrop-blur-xl z-20 h-full shadow-sm",
         className
       )}
     >
       {/* Brand Header */}
-      <div className={cn("h-16 flex items-center border-b border-border", isCollapsed ? "justify-center" : "px-6")}>
-        <div className="flex items-center gap-2 text-primary">
-           <Atom className="w-6 h-6 animate-spin-slow" />
-           {!isCollapsed && (
-             <div className="flex flex-col animate-in fade-in duration-300">
-                <span className="font-bold tracking-wider font-display text-lg leading-none">CHEM.AI</span>
-                <span className="text-[9px] text-muted-foreground uppercase tracking-widest">Synthesis Platform</span>
-             </div>
-           )}
+      <div className={cn("h-16 flex items-center border-b border-border/50", isCollapsed ? "justify-center" : "px-6")}>
+        <div className="flex items-center gap-3 text-primary">
+           <div className="relative">
+             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full animate-pulse" />
+             <Atom className="w-8 h-8 relative z-10" />
+           </div>
+           
+           <AnimatePresence>
+             {!isCollapsed && (
+               <motion.div 
+                 initial={{ opacity: 0, x: -10 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, x: -10 }}
+                 className="flex flex-col overflow-hidden whitespace-nowrap"
+               >
+                  <span className="font-bold tracking-tight font-display text-xl leading-none bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    CHEM.AI
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.2em] mt-0.5">
+                    Research Lab
+                  </span>
+               </motion.div>
+             )}
+           </AnimatePresence>
         </div>
       </div>
       
-      {/* Navigation (Mock) */}
-      <div className="py-4 px-2 space-y-1">
-          <NavItem icon={<LayoutGrid className="w-4 h-4"/>} label="Dashboard" active={true} collapsed={isCollapsed} />
-          <NavItem icon={<FlaskConical className="w-4 h-4"/>} label="Experiments" collapsed={isCollapsed} />
-          <NavItem icon={<FileText className="w-4 h-4"/>} label="Reports" collapsed={isCollapsed} />
+      {/* Navigation */}
+      <div className="py-6 px-3 space-y-1">
+          <NavItem 
+            icon={<LayoutGrid className="w-5 h-5"/>} 
+            label="Dashboard" 
+            active={activeItem === "Dashboard"} 
+            collapsed={isCollapsed} 
+            onClick={() => setActiveItem("Dashboard")}
+          />
+          <NavItem 
+            icon={<FlaskConical className="w-5 h-5"/>} 
+            label="Experiments" 
+            active={activeItem === "Experiments"} 
+            collapsed={isCollapsed} 
+            onClick={() => setActiveItem("Experiments")}
+          />
+          <NavItem 
+            icon={<BookOpen className="w-5 h-5"/>} 
+            label="Knowledge Base" 
+            active={activeItem === "Knowledge"} 
+            collapsed={isCollapsed} 
+            onClick={() => setActiveItem("Knowledge")}
+          />
+          <NavItem 
+            icon={<FileText className="w-5 h-5"/>} 
+            label="Reports" 
+            active={activeItem === "Reports"} 
+            collapsed={isCollapsed} 
+            onClick={() => setActiveItem("Reports")}
+          />
       </div>
 
-      <div className="h-px bg-border mx-4 my-2" />
+      <div className="mx-6 my-2 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       {/* History Section */}
-      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-2">
+      <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-hide">
          {!isCollapsed && (
-            <div className="px-2 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-2">
-                <History className="w-3 h-3" /> Recent Activity
+            <div className="px-3 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider font-bold mb-4">
+                <History className="w-3.5 h-3.5" /> Recent Synthesis
             </div>
          )}
          
-         {history.map((record) => (
-           <div 
-             key={record.id} 
-             onClick={() => onHistoryClick(record)}
-             className={cn(
-               "group rounded-md border border-transparent hover:bg-muted/50 hover:border-border transition-all cursor-pointer",
-               isCollapsed ? "p-2 flex justify-center" : "p-3"
-             )}
-             title={record.prompt}
-           >
-              {isCollapsed ? (
-                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary" />
-              ) : (
-                <>
-                  <div className="text-sm font-medium truncate mb-1">{record.prompt}</div>
-                  <div className="flex gap-1">
-                      {record.results.map((r, i) => (
-                          <span key={i} className="text-[9px] px-1.5 rounded-sm bg-primary/10 text-primary border border-primary/20">
-                              {r.model_name.replace('model_', 'M-')}
-                          </span>
-                      ))}
-                  </div>
-                </>
-              )}
-           </div>
-         ))}
+         <div className="space-y-1">
+           {history.map((record, i) => (
+             <motion.div 
+               key={record.id}
+               initial={{ opacity: 0, y: 5 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: i * 0.05 }}
+               onClick={() => onHistoryClick(record)}
+               className={cn(
+                 "group rounded-xl border border-transparent hover:bg-accent/50 hover:border-border/50 transition-all cursor-pointer relative overflow-hidden",
+                 isCollapsed ? "p-3 flex justify-center" : "p-3"
+               )}
+               title={record.prompt}
+             >
+                {isCollapsed ? (
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary/50 group-hover:bg-primary ring-2 ring-transparent group-hover:ring-primary/20 transition-all" />
+                ) : (
+                  <>
+                    <div className="text-sm font-medium text-foreground/90 truncate mb-1.5 group-hover:text-primary transition-colors">
+                      {record.prompt}
+                    </div>
+                    <div className="flex gap-1.5">
+                        {record.results.map((r, i) => (
+                            <span key={i} className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-mono font-medium border border-primary/10">
+                                {r.model_name.replace('model_', 'M-').toUpperCase()}
+                            </span>
+                        ))}
+                    </div>
+                  </>
+                )}
+             </motion.div>
+           ))}
+         </div>
       </div>
 
       {/* Footer / Collapse Toggle */}
-      <div className="p-2 border-t border-border flex flex-col gap-2">
+      <div className="p-4 border-t border-border/50">
           <Button 
             variant="ghost" 
-            size="sm" 
-            className="w-full justify-center text-muted-foreground hover:text-foreground"
+            className={cn(
+              "w-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all", 
+              isCollapsed ? "px-0 justify-center h-10 w-10 mx-auto" : "justify-between px-4"
+            )}
             onClick={toggleCollapse}
           >
-              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <div className="flex items-center gap-2"><ChevronLeft className="w-4 h-4" /> <span className="text-xs">Collapse</span></div>}
+              {!isCollapsed && <span className="text-sm font-medium">Collapse Sidebar</span>}
+              {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-4 h-4" />}
           </Button>
       </div>
-    </aside>
+    </motion.aside>
   );
 }
 
-function NavItem({ icon, label, active, collapsed }) {
+function NavItem({ icon, label, active, collapsed, onClick }) {
     return (
-        <div className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
-            active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            collapsed && "justify-center px-2"
-        )}>
-            {icon}
-            {!collapsed && <span className="text-sm font-medium">{label}</span>}
+        <div 
+            onClick={onClick}
+            className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative overflow-hidden",
+                active ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                collapsed && "justify-center px-2 py-3"
+            )}
+        >
+            {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />}
+            
+            <span className={cn("relative z-10 transition-transform group-hover:scale-110 duration-200", active && "scale-110")}>
+              {icon}
+            </span>
+            
+            {!collapsed && (
+              <span className="text-sm relative z-10">{label}</span>
+            )}
         </div>
     )
 }
