@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from routes import molecule_routes, experiment_routes
+from backend.routes import molecule_routes, experiment_routes, knowledge_routes
 
 ROOT_DIR = Path(__file__).parent.parent
 load_dotenv(ROOT_DIR / 'backend/.env')
@@ -25,9 +25,10 @@ api_router = APIRouter(prefix="/api")
 async def root():
     return {"message": "Molecule Generation API Online"}
 
-# Include molecule routes
+# Include routes
 api_router.include_router(molecule_routes.router)
 api_router.include_router(experiment_routes.router)
+api_router.include_router(knowledge_routes.router)
 
 # Include the router in the main app
 app.include_router(api_router)

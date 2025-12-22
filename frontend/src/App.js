@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardPage from "./features/dashboard/DashboardPage";
 import ExperimentsPage from "./features/experiments/ExperimentsPage";
 import ExperimentDetail from "./features/experiments/ExperimentDetail";
+import KnowledgePage from "./features/knowledge/KnowledgePage";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
@@ -16,6 +17,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/experiments" element={<ExperimentsPage />} />
               <Route path="/experiments/:id" element={<ExperimentDetail />} />
+              <Route path="/knowledge" element={<KnowledgePage />} />
             </Routes>
           </BrowserRouter>
           <Toaster position="top-right" />
