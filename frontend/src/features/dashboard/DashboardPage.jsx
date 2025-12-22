@@ -9,7 +9,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Loader2, Sparkles, CheckCircle2, ChevronRight, ChevronLeft,
-  LayoutList, Box, Maximize2, Quote, Calendar
+  LayoutList, Box, Maximize2, Quote, Calendar, Edit2, Check, X, RefreshCw, Copy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -24,35 +24,28 @@ export default function DashboardPage() {
   const [history, setHistory] = useState([]);
   const [activeSmiles, setActiveSmiles] = useState(null); 
   const [activeModel, setActiveModel] = useState(null); 
-  const [activeRecord, setActiveRecord] = useState(null); // Track the full record for context
+  const [activeRecord, setActiveRecord] = useState(null); 
   const [mode, setMode] = useState("generate"); 
   const [isResultListOpen, setIsResultListOpen] = useState(true); 
+  
+  // Edit Description State
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [editDescValue, setEditDescValue] = useState("");
 
   const debouncedSmiles = useDebounce(activeSmiles, 800);
 
-  const handleGenerate = async () => {
-    if (!prompt) return;
+  const handleGenerate = async (overridePrompt = null, overrideModels = null) => {
+    const finalPrompt = overridePrompt || prompt;
+    const finalModels = overrideModels || selectedModels;
+    
+    if (!finalPrompt) return;
     setLoading(true);
     try {
       const res = await axios.post(`${DASHBOARD_API}/generate`, {
-        prompt,
-        models: selectedModels
+        prompt: finalPrompt,
+        models: finalModels
       });
-      setResults(res.data.results);
-      if (res.data.results.length > 0) {
-        const first = res.data.results[0];
-        setActiveSmiles(first.smiles);
-        setActiveModel(first.model_name);
-        // Create a temporary record object for immediate display
-        setActiveRecord({
-            prompt: prompt,
-            created_at: new Date().toISOString(),
-            results: res.data.results
-        });
-        setIsResultListOpen(true);
-        toast.success("Molecule generated successfully");
-      }
-      fetchHistory();
+      handleNewResult(res.data, finalPrompt);
     } catch (e) {
       toast.error("Generation failed");
       console.error(e);
@@ -60,6 +53,63 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+
+  const handleNewResult = (data, usedPrompt) => {
+      setResults(data.results);
+      if (data.results.length > 0) {
+        const first = data.results[0];
+        setActiveSmiles(first.smiles);
+        setActiveModel(first.model_name);
+        
+        const newRecord = {
+            id: data.id,
+            prompt: usedPrompt,
+            created_at: new Date().toISOString(),
+            results: data.results
+        };
+        setActiveRecord(newRecord);
+        setIsResultListOpen(true);
+        toast.success("Molecule generated successfully");
+      }
+      fetchHistory();
+  }
+
+  const handleRegenerate = async (modelsToRun) => {
+      if(!activeRecord) return;
+      setLoading(true);
+      try {
+          // Use the specific regenerate endpoint or just call generate again with same prompt
+          // Calling generate creates a new record which is what we want for "lưu lại các chất quá khứ"
+          const res = await axios.post(`${DASHBOARD_API}/generate`, {
+            prompt: activeRecord.prompt,
+            models: modelsToRun
+          });
+          handleNewResult(res.data, activeRecord.prompt);
+      } catch(e) {
+          toast.error("Regeneration failed");
+      } finally {
+          setLoading(false);
+      }
+  }
+
+  const handleSaveDescription = async () => {
+      if(!activeRecord) return;
+      try {
+          await axios.patch(`${DASHBOARD_API}/history/${activeRecord.id}`, {
+              prompt: editDescValue
+          });
+          
+          // Update local state
+          const updatedRecord = { ...activeRecord, prompt: editDescValue };
+          setActiveRecord(updatedRecord);
+          setPrompt(editDescValue);
+          setIsEditingDesc(false);
+          fetchHistory(); // Refresh sidebar
+          toast.success("Description updated");
+      } catch(e) {
+          toast.error("Failed to update description");
+      }
+  }
 
   const fetchHistory = async () => {
     try {
@@ -86,6 +136,7 @@ export default function DashboardPage() {
             }
             setActiveRecord(record);
             setPrompt(record.prompt);
+            setEditDescValue(record.prompt);
         }}
         mode={mode}
         setMode={setMode}
@@ -172,7 +223,7 @@ export default function DashboardPage() {
 
                             <div className="p-8 border-t border-border/50 bg-background/50 backdrop-blur-sm">
                                 <Button 
-                                    onClick={handleGenerate} 
+                                    onClick={() => handleGenerate()} 
                                     disabled={loading || !prompt}
                                     className="w-full h-14 text-base font-bold tracking-wide shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all rounded-xl"
                                 >
@@ -247,9 +298,9 @@ export default function DashboardPage() {
                                 </div>
                             )}
 
-                             {/* CONTEXT CARD - NEW FEATURE */}
+                             {/* CONTEXT CARD - EDITABLE */}
                              {activeRecord && (
-                                <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-4 rounded-xl border border-border shadow-lg flex flex-col gap-2 z-10 max-w-[500px] animate-in slide-in-from-bottom-5">
+                                <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-md p-4 rounded-xl border border-border shadow-lg flex flex-col gap-2 z-10 max-w-[500px] animate-in slide-in-from-bottom-5">
                                     <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         <Quote className="w-3 h-3 text-primary" />
                                         <span>Source Description</span>
@@ -260,9 +311,38 @@ export default function DashboardPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-sm font-medium text-foreground italic line-clamp-2">
-                                        "{activeRecord.prompt}"
-                                    </p>
+                                    
+                                    {isEditingDesc ? (
+                                        <div className="flex flex-col gap-2">
+                                            <textarea 
+                                                value={editDescValue}
+                                                onChange={(e) => setEditDescValue(e.target.value)}
+                                                className="w-full text-sm font-medium bg-muted/50 border border-border rounded p-2 focus:ring-1 focus:ring-primary outline-none resize-none"
+                                                rows={2}
+                                            />
+                                            <div className="flex gap-2 justify-end">
+                                                <Button size="sm" variant="ghost" onClick={() => setIsEditingDesc(false)} className="h-7 text-xs"><X className="w-3 h-3 mr-1"/> Cancel</Button>
+                                                <Button size="sm" onClick={handleSaveDescription} className="h-7 text-xs"><Check className="w-3 h-3 mr-1"/> Save</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="group/text relative">
+                                            <p className="text-sm font-medium text-foreground italic line-clamp-2 pr-6">
+                                                "{activeRecord.prompt}"
+                                            </p>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="absolute -top-1 -right-1 w-6 h-6 opacity-0 group-hover/text:opacity-100 transition-opacity"
+                                                onClick={() => {
+                                                    setEditDescValue(activeRecord.prompt);
+                                                    setIsEditingDesc(true);
+                                                }}
+                                            >
+                                                <Edit2 className="w-3 h-3" />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -274,13 +354,27 @@ export default function DashboardPage() {
                          </div>
                          
                          {mode === 'generate' && (
-                            <div className="bg-card/50 backdrop-blur-sm border border-border/50 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                                <div>
-                                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">SMILES String</div>
-                                    <div className="font-mono text-xs text-foreground select-all font-medium break-all">{activeSmiles.substring(0, 60)}...</div>
+                            <div className="bg-card/50 backdrop-blur-sm border border-border/50 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+                                <div className="flex justify-between items-center">
+                                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">SMILES String</div>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="h-6 text-[10px] px-2"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(activeSmiles);
+                                                toast.success("SMILES copied");
+                                            }}
+                                        >
+                                            <Copy className="w-3 h-3 mr-1" /> Copy
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <span className="text-[10px] px-3 py-1 rounded-lg bg-green-500/10 text-green-600 border border-green-500/20 font-bold">Valid Structure</span>
+                                <div className="w-full bg-muted/30 rounded-lg p-3 border border-border/30 max-h-[80px] overflow-y-auto">
+                                    <code className="font-mono text-xs text-foreground break-all whitespace-pre-wrap leading-relaxed">
+                                        {activeSmiles}
+                                    </code>
                                 </div>
                             </div>
                          )}
@@ -325,7 +419,23 @@ export default function DashboardPage() {
                                                    <span className={cn("text-xs font-bold uppercase", isActive ? "text-primary" : "text-foreground")}>
                                                        {res.model_name.replace('_', ' ')}
                                                    </span>
-                                                   {isActive && <CheckCircle2 className="w-3.5 h-3.5 text-primary" />}
+                                                   
+                                                   <div className="flex gap-1">
+                                                       {/* REGENERATE BUTTON */}
+                                                       <Button 
+                                                            size="icon" 
+                                                            variant="ghost" 
+                                                            className="w-5 h-5 h-5 rounded-full hover:bg-primary hover:text-white"
+                                                            title="Regenerate this model"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRegenerate([res.model_name]);
+                                                            }}
+                                                       >
+                                                           <RefreshCw className="w-3 h-3" />
+                                                       </Button>
+                                                       {isActive && <CheckCircle2 className="w-3.5 h-3.5 text-primary" />}
+                                                   </div>
                                                </div>
                                                <div className="text-[10px] text-muted-foreground font-mono truncate">
                                                    Confidence: {(res.confidence * 100).toFixed(1)}%
