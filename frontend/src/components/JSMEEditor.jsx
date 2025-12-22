@@ -21,9 +21,13 @@ const JSMEEditor = ({ onChange, initialSmiles }) => {
         }
 
         // Setup Callback
-        editorRef.current.setCallBack("AfterStructureModified", (jsme) => {
-           const smiles = jsme.smiles();
-           if(onChange) onChange(smiles);
+        editorRef.current.setCallBack("AfterStructureModified", (jsmeEvent) => {
+           // jsmeEvent is the event object, not the applet instance
+           // Use editorRef.current to access the API
+           if (editorRef.current && typeof editorRef.current.smiles === 'function') {
+               const smiles = editorRef.current.smiles();
+               if(onChange) onChange(smiles);
+           }
         });
       } else if (!window.JSApplet) {
         // Retry if script not loaded yet (CDN delay)
