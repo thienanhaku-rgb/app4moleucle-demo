@@ -3,11 +3,11 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 import Molecule3DViewer from '@/components/Molecule3DViewer';
-import JSMEEditor from '@/components/JSMEEditor';
+import { ProStructureEditor } from '@/components/ProStructureEditor';
+import { useDebounce } from '@/hooks/use-debounce';
 import axios from 'axios';
 import { 
-  Loader2, Atom, FlaskConical, Copy, Eraser, 
-  Sparkles, CheckCircle2 
+  Loader2, Atom, Sparkles, CheckCircle2 
 } from "lucide-react";
 
 const DASHBOARD_API = process.env.REACT_APP_BACKEND_URL + "/api/molecules";
@@ -20,6 +20,9 @@ export default function DashboardPage() {
   const [history, setHistory] = useState([]);
   const [activeSmiles, setActiveSmiles] = useState(null); 
   const [mode, setMode] = useState("generate"); // generate | edit
+
+  // Debounce SMILES for 3D viewer to prevent jitter during editing
+  const debouncedSmiles = useDebounce(activeSmiles, 800);
 
   // API Methods
   const handleGenerate = async () => {
@@ -53,18 +56,6 @@ export default function DashboardPage() {
     }
   }
 
-  const copySmiles = () => {
-      if(activeSmiles) {
-          navigator.clipboard.writeText(activeSmiles);
-          toast.success("SMILES copied to clipboard");
-      }
-  }
-
-  const clearEditor = () => {
-      setActiveSmiles("");
-      toast.info("Editor cleared");
-  }
-
   useEffect(() => {
     fetchHistory();
   }, []);
@@ -85,7 +76,7 @@ export default function DashboardPage() {
             {/* Left Panel */}
             <div className={`
                 transition-all duration-500 ease-in-out border-r border-border bg-card z-10 overflow-y-auto flex flex-col
-                ${mode === 'edit' ? 'w-full md:w-1/2 p-0' : 'w-full md:w-[400px] p-0'}
+                ${mode === 'edit' ? 'w-full md:w-1/2 p-4' : 'w-full md:w-[400px] p-0'}
             `}>
                 
                 {/* GENERATOR MODE */}
@@ -146,32 +137,12 @@ export default function DashboardPage() {
 
                 {/* EDITOR MODE */}
                 {mode === 'edit' && (
-                    <div className="flex flex-col h-full animate-in fade-in duration-300">
-                        <div className="h-12 border-b border-border bg-muted/30 flex justify-between items-center px-4">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"/>
-                                <span className="text-xs font-bold text-foreground tracking-wide">2D EDITOR</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="sm" onClick={copySmiles} className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                                    <Copy className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[10px] font-bold">COPY</span>
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={clearEditor} className="h-8 px-2 text-muted-foreground hover:text-destructive">
-                                    <Eraser className="w-3.5 h-3.5 mr-1.5" /> <span className="text-[10px] font-bold">CLEAR</span>
-                                </Button>
-                            </div>
-                        </div>
-                        
-                        <div className="flex-1 relative bg-white">
-                             <div className="absolute inset-0">
-                                <JSMEEditor onChange={(s) => setActiveSmiles(s)} initialSmiles={activeSmiles} />
-                             </div>
-                        </div>
-
-                        <div className="h-8 bg-card border-t border-border flex items-center px-4 justify-between text-[10px] font-mono text-muted-foreground">
-                             <span>JSME ENGINE v2025</span>
-                             <span className="truncate max-w-[200px]">{activeSmiles || "EMPTY"}</span>
-                        </div>
+                    <div className="h-full animate-in fade-in duration-300">
+                        <ProStructureEditor 
+                            activeSmiles={activeSmiles} 
+                            setActiveSmiles={setActiveSmiles} 
+                            className="h-full"
+                        />
                     </div>
                 )}
             </div>
@@ -191,10 +162,10 @@ export default function DashboardPage() {
 
                 {activeSmiles ? (
                    <div className={`w-full h-full ${mode === 'edit' ? '' : 'p-6'} grid grid-cols-1 ${mode === 'generate' && results.length > 1 ? 'md:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
-                      {/* Main Viewer */}
+                      {/* Main Viewer - USES DEBOUNCED SMILES FOR 3D */}
                       <div className={`relative h-full flex flex-col gap-2 ${mode === 'generate' && results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'}`}>
-                         <div className="flex-1 rounded-xl overflow-hidden border border-border shadow-sm bg-card relative">
-                            <Molecule3DViewer smiles={activeSmiles} className="w-full h-full" />
+                         <div className="flex-1 rounded-xl overflow-hidden border border-border shadow-sm bg-card relative transition-all duration-300">
+                            <Molecule3DViewer smiles={debouncedSmiles || activeSmiles} className="w-full h-full" />
                          </div>
                          
                          {mode === 'generate' && (
