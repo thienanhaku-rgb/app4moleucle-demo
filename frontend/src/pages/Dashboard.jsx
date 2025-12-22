@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Molecule3DViewer from '../components/Molecule3DViewer';
 import JSMEEditor from '../components/JSMEEditor';
 import axios from 'axios';
-import { Loader2, Atom, FlaskConical, History, Settings2, Share2, Download } from "lucide-react";
+import { Loader2, Atom, FlaskConical, History, Share2, Download, ArrowRightLeft } from "lucide-react";
 
 const DASHBOARD_API = process.env.REACT_APP_BACKEND_URL + "/api/molecules";
 
@@ -18,7 +15,7 @@ const Dashboard = () => {
   const [selectedModels, setSelectedModels] = useState(["model_a"]);
   const [results, setResults] = useState([]);
   const [history, setHistory] = useState([]);
-  const [activeSmiles, setActiveSmiles] = useState(null); // The molecule currently being viewed in main 3D viewer
+  const [activeSmiles, setActiveSmiles] = useState(null); 
   const [mode, setMode] = useState("generate"); // generate | edit
 
   const handleGenerate = async () => {
@@ -52,7 +49,6 @@ const Dashboard = () => {
     }
   }
 
-  // Initial fetch
   React.useEffect(() => {
     fetchHistory();
   }, []);
@@ -60,8 +56,8 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen w-full bg-[#020408] text-slate-200 overflow-hidden font-sans">
       
-      {/* Sidebar - History */}
-      <aside className="w-72 hidden md:flex flex-col border-r border-slate-800/50 bg-[#05080e]/90 backdrop-blur-xl z-20">
+      {/* Sidebar - History (Collapsible on mobile?) - Keep generic width */}
+      <aside className="w-64 hidden md:flex flex-col border-r border-slate-800/50 bg-[#05080e]/90 backdrop-blur-xl z-20">
         <div className="p-6 border-b border-slate-800/50">
           <div className="flex items-center gap-2 text-lime-400 mb-1">
              <Atom className="w-5 h-5 animate-spin-slow" />
@@ -108,6 +104,7 @@ const Dashboard = () => {
                   <TabsTrigger value="edit" className="data-[state=active]:bg-lime-500 data-[state=active]:text-black font-mono text-xs">EDITOR</TabsTrigger>
                 </TabsList>
               </Tabs>
+              {mode === 'edit' && <span className="text-xs font-mono text-lime-500/80 flex items-center gap-1"><ArrowRightLeft className="w-3 h-3"/> SYNC ACTIVE</span>}
            </div>
            <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white"><Share2 className="w-4 h-4" /></Button>
@@ -119,8 +116,11 @@ const Dashboard = () => {
         {/* Workspace */}
         <div className="flex-1 relative overflow-hidden flex flex-col md:flex-row">
             
-            {/* Left Panel: Input & Controls (Overlay on Mobile, Panel on Desktop) */}
-            <div className="w-full md:w-96 border-r border-slate-800/50 bg-[#020408] p-6 flex flex-col gap-6 z-10 overflow-y-auto">
+            {/* Left Panel: Dynamic Width based on Mode */}
+            <div className={`
+                transition-all duration-500 ease-in-out border-r border-slate-800/50 bg-[#020408] z-10 overflow-y-auto flex flex-col
+                ${mode === 'edit' ? 'w-full md:w-1/2 p-0' : 'w-full md:w-96 p-6'}
+            `}>
                
                {mode === 'generate' && (
                  <div className="space-y-6 animate-in slide-in-from-left duration-500">
@@ -163,36 +163,48 @@ const Dashboard = () => {
                )}
 
                {mode === 'edit' && (
-                  <div className="h-full flex flex-col gap-4 animate-in slide-in-from-left duration-500">
-                      <div className="text-xs text-lime-500 font-mono uppercase tracking-wider">2D Structural Editor</div>
-                      <div className="flex-1 min-h-[300px] border border-slate-800 rounded bg-white relative">
+                  <div className="h-full flex flex-col animate-in fade-in duration-500">
+                      <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+                          <span className="text-xs text-lime-500 font-mono uppercase tracking-wider">2D Visualizer & Editor</span>
+                          <span className="text-[10px] text-slate-500 uppercase">JSME ENGINE</span>
+                      </div>
+                      <div className="flex-1 bg-white relative">
                           <JSMEEditor onChange={(s) => setActiveSmiles(s)} initialSmiles={activeSmiles} />
                       </div>
-                      <p className="text-xs text-slate-500 text-center">Draw structure to update 3D View</p>
                   </div>
                )}
 
             </div>
 
             {/* Right Panel: Visualization */}
-            <div className="flex-1 bg-[#05080e] relative">
+            <div className="flex-1 bg-[#05080e] relative flex flex-col">
                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05)_0%,transparent_70%)] pointer-events-none" />
                
+               {mode === 'edit' && (
+                   <div className="px-6 py-3 border-b border-slate-800/50 bg-slate-900/20 absolute top-0 left-0 right-0 z-10 flex justify-between">
+                       <span className="text-xs text-blue-400 font-mono uppercase tracking-wider">3D Real-time Viewer</span>
+                       <span className="text-[10px] text-slate-500 uppercase">3Dmol.js RENDERER</span>
+                   </div>
+               )}
+
                {activeSmiles ? (
-                   <div className="w-full h-full p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className={`w-full h-full ${mode === 'edit' ? 'pt-10' : 'p-6'} grid grid-cols-1 ${mode === 'generate' && results.length > 1 ? 'md:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
                       {/* Main Viewer */}
-                      <div className={`relative ${results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'} h-full flex flex-col gap-2`}>
+                      <div className={`relative h-full flex flex-col gap-2 ${mode === 'generate' && results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'}`}>
                          <Molecule3DViewer smiles={activeSmiles} className="flex-1" />
-                         <div className="flex justify-between items-center px-2">
-                            <span className="font-mono text-xs text-slate-500">SMILES: <span className="text-lime-400 select-all">{activeSmiles.substring(0, 30)}...</span></span>
-                            <div className="flex gap-2">
-                                <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">CONFIDENCE: 98.2%</span>
+                         
+                         {mode === 'generate' && (
+                            <div className="flex justify-between items-center px-2">
+                                <span className="font-mono text-xs text-slate-500">SMILES: <span className="text-lime-400 select-all">{activeSmiles.substring(0, 30)}...</span></span>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">CONFIDENCE: 98.2%</span>
+                                </div>
                             </div>
-                         </div>
+                         )}
                       </div>
 
-                      {/* Comparison View (if multiple results) */}
-                      {results.length > 1 && (
+                      {/* Comparison View (Only in Generate mode) */}
+                      {mode === 'generate' && results.length > 1 && (
                          <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2">
                             {results.filter(r => r.smiles !== activeSmiles).map((res, idx) => (
                                <div key={idx} className="h-1/2 min-h-[200px] relative group cursor-pointer border border-slate-800 hover:border-lime-500/50 rounded-lg overflow-hidden transition-all"
