@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardPage from "./features/dashboard/DashboardPage";
+import ExperimentsPage from "./features/experiments/ExperimentsPage";
+import ExperimentDetail from "./features/experiments/ExperimentDetail";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
@@ -12,6 +14,8 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
+              <Route path="/experiments" element={<ExperimentsPage />} />
+              <Route path="/experiments/:id" element={<ExperimentDetail />} />
             </Routes>
           </BrowserRouter>
           <Toaster position="top-right" />
