@@ -10,7 +10,7 @@ from services.molecule_service import generate_molecules
 router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 def get_db():
-    from ..server import db
+    from server import db
     return db
 
 @router.post("/generate", response_model=GenerationRecord)
