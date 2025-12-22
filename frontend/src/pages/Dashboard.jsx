@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import Molecule3DViewer from '../components/Molecule3DViewer';
 import JSMEEditor from '../components/JSMEEditor';
 import axios from 'axios';
-import { Loader2, Atom, FlaskConical, History, Share2, Download, ArrowRightLeft } from "lucide-react";
+import { 
+  Loader2, Atom, FlaskConical, History, Share2, Download, 
+  ArrowRightLeft, Eraser, Copy, Info, maximize, Minimize 
+} from "lucide-react";
 
 const DASHBOARD_API = process.env.REACT_APP_BACKEND_URL + "/api/molecules";
 
@@ -49,6 +52,18 @@ const Dashboard = () => {
     }
   }
 
+  const copySmiles = () => {
+      if(activeSmiles) {
+          navigator.clipboard.writeText(activeSmiles);
+          toast.success("SMILES copied to clipboard");
+      }
+  }
+
+  const clearEditor = () => {
+      setActiveSmiles("");
+      toast.info("Editor cleared");
+  }
+
   React.useEffect(() => {
     fetchHistory();
   }, []);
@@ -56,7 +71,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen w-full bg-[#020408] text-slate-200 overflow-hidden font-sans">
       
-      {/* Sidebar - History (Collapsible on mobile?) - Keep generic width */}
+      {/* Sidebar - History */}
       <aside className="w-64 hidden md:flex flex-col border-r border-slate-800/50 bg-[#05080e]/90 backdrop-blur-xl z-20">
         <div className="p-6 border-b border-slate-800/50">
           <div className="flex items-center gap-2 text-lime-400 mb-1">
@@ -163,13 +178,53 @@ const Dashboard = () => {
                )}
 
                {mode === 'edit' && (
-                  <div className="h-full flex flex-col animate-in fade-in duration-500">
-                      <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-                          <span className="text-xs text-lime-500 font-mono uppercase tracking-wider">2D Visualizer & Editor</span>
-                          <span className="text-[10px] text-slate-500 uppercase">JSME ENGINE</span>
+                  <div className="h-full flex flex-col bg-slate-950 animate-in fade-in duration-500">
+                      {/* Pro Header */}
+                      <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/80 backdrop-blur flex justify-between items-center shadow-lg z-10">
+                          <div className="flex flex-col">
+                             <span className="text-xs text-lime-400 font-mono font-bold tracking-wider flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"/>
+                                MOLECULAR BLUEPRINT
+                             </span>
+                             <span className="text-[10px] text-slate-500">2D STRUCTURAL EDITOR</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="sm" onClick={copySmiles} className="h-7 px-2 text-slate-400 hover:text-white hover:bg-slate-800" title="Copy SMILES">
+                                  <Copy className="w-3.5 h-3.5 mr-1" /> <span className="text-[10px] font-mono">COPY</span>
+                              </Button>
+                              <div className="w-px h-4 bg-slate-800 mx-1"></div>
+                              <Button variant="ghost" size="sm" onClick={clearEditor} className="h-7 px-2 text-slate-400 hover:text-red-400 hover:bg-red-900/20" title="Clear Canvas">
+                                  <Eraser className="w-3.5 h-3.5 mr-1" /> <span className="text-[10px] font-mono">CLEAR</span>
+                              </Button>
+                          </div>
                       </div>
-                      <div className="flex-1 bg-white relative">
-                          <JSMEEditor onChange={(s) => setActiveSmiles(s)} initialSmiles={activeSmiles} />
+
+                      {/* Editor Container with Tech Borders */}
+                      <div className="flex-1 relative p-4 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')] bg-slate-900/50">
+                          {/* Corner Accents */}
+                          <div className="absolute top-4 left-4 w-4 h-4 border-l-2 border-t-2 border-lime-500/50 z-10"></div>
+                          <div className="absolute top-4 right-4 w-4 h-4 border-r-2 border-t-2 border-lime-500/50 z-10"></div>
+                          <div className="absolute bottom-4 left-4 w-4 h-4 border-l-2 border-b-2 border-lime-500/50 z-10"></div>
+                          <div className="absolute bottom-4 right-4 w-4 h-4 border-r-2 border-b-2 border-lime-500/50 z-10"></div>
+
+                          <div className="w-full h-full shadow-2xl rounded-sm overflow-hidden border border-slate-700/50 relative">
+                             {/* JSME Wrapper */}
+                             <div className="absolute inset-0 bg-white">
+                                <JSMEEditor onChange={(s) => setActiveSmiles(s)} initialSmiles={activeSmiles} />
+                             </div>
+                          </div>
+                      </div>
+
+                      {/* Footer Stats */}
+                      <div className="h-8 border-t border-slate-800 bg-slate-950 flex items-center px-4 justify-between">
+                          <div className="flex items-center gap-4">
+                              <span className="text-[10px] text-slate-500 font-mono">STATUS: <span className="text-lime-500">EDITING</span></span>
+                              <span className="text-[10px] text-slate-500 font-mono">ENGINE: <span className="text-slate-300">JSME 2025</span></span>
+                          </div>
+                          <span className="text-[10px] text-slate-600 font-mono truncate max-w-[200px]" title={activeSmiles}>
+                              {activeSmiles || "NO STRUCTURE"}
+                          </span>
                       </div>
                   </div>
                )}
@@ -181,17 +236,20 @@ const Dashboard = () => {
                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05)_0%,transparent_70%)] pointer-events-none" />
                
                {mode === 'edit' && (
-                   <div className="px-6 py-3 border-b border-slate-800/50 bg-slate-900/20 absolute top-0 left-0 right-0 z-10 flex justify-between">
-                       <span className="text-xs text-blue-400 font-mono uppercase tracking-wider">3D Real-time Viewer</span>
+                   <div className="px-6 py-3 border-b border-slate-800/50 bg-slate-900/20 absolute top-0 left-0 right-0 z-10 flex justify-between items-center backdrop-blur-sm">
+                       <span className="text-xs text-blue-400 font-mono font-bold tracking-wider flex items-center gap-2">
+                           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"/>
+                           3D REAL-TIME VIEWER
+                       </span>
                        <span className="text-[10px] text-slate-500 uppercase">3Dmol.js RENDERER</span>
                    </div>
                )}
 
                {activeSmiles ? (
-                   <div className={`w-full h-full ${mode === 'edit' ? 'pt-10' : 'p-6'} grid grid-cols-1 ${mode === 'generate' && results.length > 1 ? 'md:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+                   <div className={`w-full h-full ${mode === 'edit' ? 'pt-12' : 'p-6'} grid grid-cols-1 ${mode === 'generate' && results.length > 1 ? 'md:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
                       {/* Main Viewer */}
                       <div className={`relative h-full flex flex-col gap-2 ${mode === 'generate' && results.length > 1 ? 'md:col-span-1' : 'md:col-span-2'}`}>
-                         <Molecule3DViewer smiles={activeSmiles} className="flex-1" />
+                         <Molecule3DViewer smiles={activeSmiles} className="flex-1 border-slate-800" />
                          
                          {mode === 'generate' && (
                             <div className="flex justify-between items-center px-2">
