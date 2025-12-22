@@ -4,8 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
 from bson import ObjectId
 from datetime import datetime, timezone
-from ..models import MoleculeGenerationRequest, GenerationRecord, GenerationHistoryResponse
-from ..services.molecule_service import generate_molecules
+from models import MoleculeGenerationRequest, GenerationRecord, GenerationHistoryResponse
+from services.molecule_service import generate_molecules
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
