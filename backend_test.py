@@ -138,6 +138,56 @@ class MoleculeAPITester:
             400  # Bad request expected
         )
 
+    # Experiment API Tests
+    def test_create_experiment(self):
+        """Test creating a new experiment"""
+        success, response = self.run_test(
+            "Create Experiment",
+            "POST",
+            "api/experiments/",
+            200,
+            data={"name": "Test Exp 1", "description": "Test experiment for API testing"}
+        )
+        return success, response
+
+    def test_list_experiments(self):
+        """Test listing all experiments"""
+        return self.run_test(
+            "List Experiments",
+            "GET",
+            "api/experiments/",
+            200
+        )
+
+    def test_get_experiment_detail(self, experiment_id):
+        """Test getting experiment details"""
+        return self.run_test(
+            f"Get Experiment Detail - {experiment_id[:8]}",
+            "GET",
+            f"api/experiments/{experiment_id}",
+            200
+        )
+
+    def test_get_experiment_runs(self, experiment_id):
+        """Test getting experiment runs"""
+        return self.run_test(
+            f"Get Experiment Runs - {experiment_id[:8]}",
+            "GET",
+            f"api/experiments/{experiment_id}/runs",
+            200
+        )
+
+    def test_generate_in_experiment(self, experiment_id, prompt="Ethanol"):
+        """Test generating molecules within an experiment"""
+        success, response = self.run_test(
+            f"Generate in Experiment - {prompt}",
+            "POST",
+            f"api/experiments/{experiment_id}/generate",
+            200,
+            data={"prompt": prompt, "models": ["model_a"]}
+        )
+        return success, response
+
 def main():
     print("🧪 Starting Molecule API Testing...")
     print("=" * 50)
