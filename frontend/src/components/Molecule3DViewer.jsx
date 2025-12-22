@@ -2,52 +2,71 @@ import React, { useEffect, useRef } from 'react';
 import * as $3Dmol from '3dmol/build/3Dmol.js';
 import axios from 'axios';
 
-const Molecule3DViewer = ({ smiles, className }) => {
+const Molecule3DViewer = ({ smiles, className, overlaySmiles }) => {
   const viewerRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Initialize viewer
-    // Use 'white' or transparent background to let CSS handle theming
-    const viewer = $3Dmol.createViewer(containerRef.current, {
-      backgroundColor: 'rgba(0,0,0,0)', 
-    });
-    viewerRef.current = viewer;
-
-    // Load molecule data
-    if (smiles) {
-        const fetchAndLoad = async () => {
+    // Initialize viewer if not already
+    // If props change significantly, we might want to reset, but 3Dmol handles updates well.
+    if (!viewerRef.current) {
+        const viewer = $3Dmol.createViewer(containerRef.current, {
+          backgroundColor: 'rgba(0,0,0,0)', 
+        });
+        viewerRef.current = viewer;
+    }
+    
+    const viewer = viewerRef.current;
+    
+    const loadModels = async () => {
+        viewer.clear(); // Clear scene
+        
+        // 1. Load Main Molecule
+        if (smiles) {
              try {
-                // Use our own backend proxy/generator instead of external Cactus API
-                // This avoids CORS and improves reliability
                 const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/molecules/3d`, {
                     params: { smiles }
                 });
                 
                 if(response.data && response.data.sdf) {
-                    const sdf = response.data.sdf;
-                    viewer.addModel(sdf, "sdf");
-                    viewer.setStyle({}, { stick: { radius: 0.15, colorscheme: "Jmol" }, sphere: { scale: 0.25 } });
-                    viewer.zoomTo();
-                    viewer.render();
-                } else {
-                    console.error("Failed to generate 3D structure");
+                    const model = viewer.addModel(response.data.sdf, "sdf");
+                    // Main: Standard CPK/Jmol colors
+                    model.setStyle({}, { stick: { radius: 0.15, colorscheme: "Jmol" }, sphere: { scale: 0.25 } });
                 }
-             } catch(e) {
-                 console.error("3D Generation Error:", e);
-                 // Fallback: Try to render 2D-to-3D via 3Dmol's internal heuristics if SDF fetch fails
-                 // (Though 3Dmol usually needs coords)
-             }
+             } catch(e) { console.error(e); }
         }
-        fetchAndLoad();
+
+        // 2. Load Overlay Molecule (Comparison)
+        if (overlaySmiles) {
+             try {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/molecules/3d`, {
+                    params: { smiles: overlaySmiles }
+                });
+                
+                if(response.data && response.data.sdf) {
+                    const model = viewer.addModel(response.data.sdf, "sdf");
+                    // Overlay: Unicolor (e.g., Cyan transparent) to distinguish
+                    // Or specific stick style
+                    model.setStyle({}, { 
+                        stick: { radius: 0.15, color: '#00FFFF', opacity: 0.7 }, 
+                        sphere: { scale: 0.25, color: '#00FFFF', opacity: 0.7 } 
+                    });
+                }
+             } catch(e) { console.error(e); }
+        }
+
+        viewer.zoomTo();
+        viewer.render();
     }
+
+    loadModels();
 
     return () => {
        // cleanup if needed
     };
-  }, [smiles]);
+  }, [smiles, overlaySmiles]);
 
   return (
     <div 
