@@ -3,8 +3,8 @@ from typing import List
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
 from datetime import datetime, timezone
-from ..models import Experiment, ExperimentCreate, GenerationRecord, MoleculeGenerationRequest
-from ..services.molecule_service import generate_molecules
+from models import Experiment, ExperimentCreate, GenerationRecord, MoleculeGenerationRequest
+from services.molecule_service import generate_molecules
 
 router = APIRouter(prefix="/experiments", tags=["experiments"])
 
