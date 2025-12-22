@@ -344,6 +344,24 @@ def main():
     else:
         print("❌ Failed to create experiment, skipping dependent tests")
 
+    print("\n🧠 Testing Knowledge Base API...")
+    # Test knowledge base queries
+    success_aspirin, aspirin_kb_response = tester.test_knowledge_chat_aspirin()
+    if success_aspirin:
+        print("✅ Aspirin knowledge query successful!")
+    
+    success_ethanol, ethanol_kb_response = tester.test_knowledge_chat_ethanol()
+    if success_ethanol:
+        print("✅ Ethanol knowledge query successful!")
+    
+    success_unknown, unknown_kb_response = tester.test_knowledge_chat_unknown()
+    if success_unknown:
+        print("✅ Unknown chemical fallback working!")
+    
+    success_caffeine, caffeine_kb_response = tester.test_knowledge_chat_caffeine()
+    if success_caffeine:
+        print("✅ Caffeine knowledge query successful!")
+
     # Print final results
     print("\n" + "=" * 50)
     print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
