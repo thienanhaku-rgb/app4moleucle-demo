@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 import axios from 'axios';
 import { 
-  FlaskConical, Plus, Search, Calendar, FolderOpen, MoreHorizontal, ArrowRight 
+  FlaskConical, Plus, ArrowRight, FolderOpen, Calendar
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -18,8 +18,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
-
-const API = process.env.REACT_APP_BACKEND_URL + "/api/experiments";
+import { getApiUrl } from '@/lib/utils';
 
 export default function ExperimentsPage() {
   const [experiments, setExperiments] = useState([]);
@@ -30,7 +29,7 @@ export default function ExperimentsPage() {
 
   const fetchExperiments = async () => {
       try {
-          const res = await axios.get(API);
+          const res = await axios.get(getApiUrl("/api/experiments"));
           setExperiments(res.data);
       } catch(e) {
           toast.error("Failed to load experiments");
@@ -42,7 +41,7 @@ export default function ExperimentsPage() {
   const handleCreate = async () => {
       if(!newExpName.trim()) return;
       try {
-          await axios.post(API, { name: newExpName });
+          await axios.post(getApiUrl("/api/experiments"), { name: newExpName });
           setNewExpName("");
           setIsDialogOpen(false);
           toast.success("Experiment created");
@@ -58,15 +57,15 @@ export default function ExperimentsPage() {
 
   return (
     <MainLayout>
-        <div className="p-8 h-full overflow-y-auto">
-            <div className="flex justify-between items-center mb-8">
+        <div className="p-4 md:p-8 h-full overflow-y-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-display font-bold text-foreground mb-2">Experiments Lab</h1>
-                    <p className="text-muted-foreground">Manage your research projects and molecular collections.</p>
+                    <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">Experiments Lab</h1>
+                    <p className="text-sm text-muted-foreground">Manage your research projects and molecular collections.</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="font-bold shadow-lg shadow-primary/20">
+                        <Button className="font-bold shadow-lg shadow-primary/20 w-full md:w-auto">
                             <Plus className="w-4 h-4 mr-2" /> New Experiment
                         </Button>
                     </DialogTrigger>

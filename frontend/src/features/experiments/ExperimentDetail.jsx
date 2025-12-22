@@ -9,9 +9,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import Molecule3DViewer from '@/components/Molecule3DViewer';
 import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
-
-const API = process.env.REACT_APP_BACKEND_URL + "/api/experiments";
+import { cn, getApiUrl } from "@/lib/utils";
 
 export default function ExperimentDetail() {
   const { id } = useParams();
@@ -29,8 +27,8 @@ export default function ExperimentDetail() {
   const fetchDetail = async () => {
       try {
           const [expRes, runsRes] = await Promise.all([
-              axios.get(`${API}/${id}`),
-              axios.get(`${API}/${id}/runs`)
+              axios.get(getApiUrl(`/api/experiments/${id}`)),
+              axios.get(getApiUrl(`/api/experiments/${id}/runs`))
           ]);
           setExperiment(expRes.data);
           setRuns(runsRes.data);
@@ -47,7 +45,7 @@ export default function ExperimentDetail() {
       if(!prompt) return;
       setLoading(true);
       try {
-          await axios.post(`${API}/${id}/generate`, { prompt, models: ["model_a"] });
+          await axios.post(getApiUrl(`/api/experiments/${id}/generate`), { prompt, models: ["model_a"] });
           setPrompt("");
           toast.success("Generation complete");
           fetchDetail(); // Refresh list
@@ -115,9 +113,9 @@ export default function ExperimentDetail() {
                 </div>
             </div>
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden flex-col md:flex-row">
                 {/* Left: Runs List */}
-                <div className="w-80 border-r border-border bg-card/30 flex flex-col">
+                <div className="w-full md:w-80 border-r border-border bg-card/30 flex flex-col h-1/3 md:h-full">
                     <div className="p-4 border-b border-border/50 bg-muted/20">
                         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Generation Runs</h3>
                         <div className="flex gap-2">
@@ -160,7 +158,7 @@ export default function ExperimentDetail() {
                 </div>
 
                 {/* Main: Viewer */}
-                <div className="flex-1 bg-muted/10 relative p-6">
+                <div className="flex-1 bg-muted/10 relative p-4 md:p-6 h-2/3 md:h-full">
                     <div className="w-full h-full bg-card rounded-2xl border-2 border-border/50 shadow-xl overflow-hidden relative">
                         <Molecule3DViewer 
                             smiles={activeSmiles} 
