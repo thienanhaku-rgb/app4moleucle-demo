@@ -269,6 +269,73 @@ class MoleculeAPITester:
         
         return success, response
 
+    # Simulation API Tests
+    def test_docking_simulation_covid(self):
+        """Test docking simulation with COVID-19 protease"""
+        # Use aspirin SMILES for testing
+        aspirin_smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"
+        success, response = self.run_test(
+            "Docking Simulation - COVID Protease",
+            "POST",
+            "api/simulation/docking/run",
+            200,
+            data={"ligand_smiles": aspirin_smiles, "target_id": "covid_protease"}
+        )
+        
+        if success:
+            print(f"✅ Docking simulation successful!")
+            if 'affinity' in response:
+                print(f"✅ Binding affinity: {response['affinity']} kcal/mol")
+            if 'ligand_pdb' in response and response['ligand_pdb']:
+                print(f"✅ Ligand PDB data received (length: {len(response['ligand_pdb'])} chars)")
+            if 'target_pdb' in response and response['target_pdb']:
+                print(f"✅ Target PDB data received (length: {len(response['target_pdb'])} chars)")
+            if 'score_breakdown' in response:
+                breakdown = response['score_breakdown']
+                print(f"✅ Score breakdown: VdW={breakdown.get('van_der_waals')}, Elec={breakdown.get('electrostatic')}")
+        
+        return success, response
+
+    def test_docking_simulation_hiv(self):
+        """Test docking simulation with HIV protease"""
+        # Use caffeine SMILES for testing
+        caffeine_smiles = "CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+        success, response = self.run_test(
+            "Docking Simulation - HIV Protease",
+            "POST",
+            "api/simulation/docking/run",
+            200,
+            data={"ligand_smiles": caffeine_smiles, "target_id": "hiv_protease"}
+        )
+        
+        if success:
+            print(f"✅ HIV docking simulation successful!")
+            if 'affinity' in response:
+                print(f"✅ Binding affinity: {response['affinity']} kcal/mol")
+        
+        return success, response
+
+    def test_docking_simulation_invalid_target(self):
+        """Test docking simulation with invalid target"""
+        aspirin_smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"
+        return self.run_test(
+            "Docking Simulation - Invalid Target",
+            "POST",
+            "api/simulation/docking/run",
+            404,  # Not found expected
+            data={"ligand_smiles": aspirin_smiles, "target_id": "invalid_target"}
+        )
+
+    def test_docking_simulation_invalid_smiles(self):
+        """Test docking simulation with invalid SMILES"""
+        return self.run_test(
+            "Docking Simulation - Invalid SMILES",
+            "POST",
+            "api/simulation/docking/run",
+            500,  # Server error expected
+            data={"ligand_smiles": "INVALID_SMILES", "target_id": "covid_protease"}
+        )
+
 def main():
     print("🧪 Starting Molecule API Testing...")
     print("=" * 50)
