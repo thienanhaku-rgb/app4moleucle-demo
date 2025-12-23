@@ -429,6 +429,25 @@ def main():
     if success_caffeine:
         print("✅ Caffeine knowledge query successful!")
 
+    print("\n🧬 Testing Simulation API...")
+    # Test docking simulations
+    success_covid_dock, covid_dock_response = tester.test_docking_simulation_covid()
+    if success_covid_dock:
+        print("✅ COVID-19 protease docking successful!")
+    
+    success_hiv_dock, hiv_dock_response = tester.test_docking_simulation_hiv()
+    if success_hiv_dock:
+        print("✅ HIV protease docking successful!")
+    
+    # Test error handling
+    success_invalid_target, _ = tester.test_docking_simulation_invalid_target()
+    if success_invalid_target:
+        print("✅ Invalid target error handling working!")
+    
+    success_invalid_smiles, _ = tester.test_docking_simulation_invalid_smiles()
+    if success_invalid_smiles:
+        print("✅ Invalid SMILES error handling working!")
+
     # Print final results
     print("\n" + "=" * 50)
     print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
