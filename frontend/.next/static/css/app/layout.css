@@ -615,6 +615,12 @@ video {
 .top-4 {
   top: 1rem;
 }
+.right-0 {
+  right: 0px;
+}
+.top-full {
+  top: 100%;
+}
 .z-10 {
   z-index: 10;
 }
@@ -677,6 +683,12 @@ video {
 }
 .mt-4 {
   margin-top: 1rem;
+}
+.mr-1 {
+  margin-right: 0.25rem;
+}
+.mt-6 {
+  margin-top: 1.5rem;
 }
 .block {
   display: block;
@@ -750,6 +762,12 @@ video {
 .h-screen {
   height: 100vh;
 }
+.h-\[400px\] {
+  height: 400px;
+}
+.max-h-\[300px\] {
+  max-height: 300px;
+}
 .min-h-\[120px\] {
   min-height: 120px;
 }
@@ -758,6 +776,12 @@ video {
 }
 .min-h-\[300px\] {
   min-height: 300px;
+}
+.min-h-\[100px\] {
+  min-height: 100px;
+}
+.min-h-\[400px\] {
+  min-height: 400px;
 }
 .w-1 {
   width: 0.25rem;
@@ -813,6 +837,18 @@ video {
 .w-full {
   width: 100%;
 }
+.w-12 {
+  width: 3rem;
+}
+.w-32 {
+  width: 8rem;
+}
+.w-80 {
+  width: 20rem;
+}
+.w-\[400px\] {
+  width: 400px;
+}
 .min-w-0 {
   min-width: 0px;
 }
@@ -842,6 +878,10 @@ video {
 }
 .rotate-90 {
   --tw-rotate: 90deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.rotate-180 {
+  --tw-rotate: 180deg;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 .scale-0 {
@@ -918,6 +958,9 @@ video {
 .flex-wrap {
   flex-wrap: wrap;
 }
+.items-start {
+  align-items: flex-start;
+}
 .items-end {
   align-items: flex-end;
 }
@@ -944,6 +987,9 @@ video {
 }
 .gap-4 {
   gap: 1rem;
+}
+.gap-6 {
+  gap: 1.5rem;
 }
 .space-y-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
@@ -977,6 +1023,9 @@ video {
 }
 .overflow-hidden {
   overflow: hidden;
+}
+.overflow-x-auto {
+  overflow-x: auto;
 }
 .overflow-y-auto {
   overflow-y: auto;
@@ -1062,6 +1111,9 @@ video {
 .border-primary {
   border-color: hsl(var(--primary));
 }
+.border-transparent {
+  border-color: transparent;
+}
 .border-t-transparent {
   border-top-color: transparent;
 }
@@ -1124,6 +1176,21 @@ video {
 }
 .bg-transparent {
   background-color: transparent;
+}
+.bg-muted\/10 {
+  background-color: hsl(var(--muted) / 0.1);
+}
+.bg-blue-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
+}
+.bg-orange-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 115 22 / var(--tw-bg-opacity, 1));
+}
+.bg-purple-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(168 85 247 / var(--tw-bg-opacity, 1));
 }
 .bg-\[radial-gradient\(circle_at_top_right\2c _var\(--tw-gradient-stops\)\)\] {
   background-image: radial-gradient(circle at top right, var(--tw-gradient-stops));
@@ -1259,6 +1326,10 @@ video {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 }
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
 .pb-2 {
   padding-bottom: 0.5rem;
 }
@@ -1304,6 +1375,14 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
 }
 .font-bold {
   font-weight: 700;
@@ -1362,6 +1441,18 @@ video {
 .text-transparent {
   color: transparent;
 }
+.text-green-500 {
+  --tw-text-opacity: 1;
+  color: rgb(34 197 94 / var(--tw-text-opacity, 1));
+}
+.text-red-500 {
+  --tw-text-opacity: 1;
+  color: rgb(239 68 68 / var(--tw-text-opacity, 1));
+}
+.text-yellow-500 {
+  --tw-text-opacity: 1;
+  color: rgb(234 179 8 / var(--tw-text-opacity, 1));
+}
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
@@ -1371,6 +1462,9 @@ video {
 }
 .opacity-80 {
   opacity: 0.8;
+}
+.opacity-50 {
+  opacity: 0.5;
 }
 .shadow {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -1425,6 +1519,9 @@ video {
 }
 .ring-background {
   --tw-ring-color: hsl(var(--background));
+}
+.ring-primary\/20 {
+  --tw-ring-color: hsl(var(--primary) / 0.2);
 }
 .ring-offset-background {
   --tw-ring-offset-color: hsl(var(--background));
@@ -1590,6 +1687,9 @@ video {
 .hover\:border-primary\/50:hover {
   border-color: hsl(var(--primary) / 0.5);
 }
+.hover\:border-border:hover {
+  border-color: hsl(var(--border));
+}
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
@@ -1610,6 +1710,9 @@ video {
 }
 .hover\:bg-secondary\/80:hover {
   background-color: hsl(var(--secondary) / 0.8);
+}
+.hover\:bg-muted\/50:hover {
+  background-color: hsl(var(--muted) / 0.5);
 }
 .hover\:text-accent-foreground:hover {
   color: hsl(var(--accent-foreground));
