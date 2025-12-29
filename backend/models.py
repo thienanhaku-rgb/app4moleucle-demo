@@ -13,6 +13,8 @@ class SingleModelResult(BaseModel):
     smiles: str
     confidence: float
     execution_time: float
+    model_version: Optional[str] = None
+    is_valid: bool = True
 
 class GenerationRecord(BaseModel):
     model_config = ConfigDict(extra="ignore")
