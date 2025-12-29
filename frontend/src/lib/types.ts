@@ -1,4 +1,35 @@
-// API Types
+// ============ Model Types ============
+export interface ModelInfo {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export const AVAILABLE_MODELS: ModelInfo[] = [
+  { id: 'your_model', name: 'Your Model', description: 'Custom trained model' },
+  { id: 'molt5', name: 'MolT5', description: 'Transformer for molecules' },
+  { id: 'chemberta', name: 'ChemBERTa', description: 'BERT-based chemistry model' },
+];
+
+// ============ API Request Types ============
+export interface GenerateRequest {
+  prompt: string;
+  models: string[];
+  experiment_id?: string;
+}
+
+export interface ChatRequest {
+  query: string;
+  session_id?: string;
+  context?: string;
+}
+
+export interface Mol2TextRequest {
+  smiles: string;
+  additional_info?: string;
+}
+
+// ============ API Response Types ============
 export interface SingleModelResult {
   model_name: string;
   smiles: string;
@@ -17,27 +48,10 @@ export interface GenerationRecord {
   updated_at?: string;
 }
 
-export interface MoleculeGenerationRequest {
-  prompt: string;
-  models: string[];
-  experiment_id?: string;
-}
-
-export interface ChatRequest {
-  query: string;
-  session_id?: string;
-  context?: string;
-}
-
 export interface ChatResponse {
   answer: string;
   session_id: string;
   sources: string[];
-}
-
-export interface Mol2TextRequest {
-  smiles: string;
-  additional_info?: string;
 }
 
 export interface Mol2TextResponse {
@@ -47,30 +61,21 @@ export interface Mol2TextResponse {
   error?: string;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  sources?: string[];
+export interface Structure3DResponse {
+  sdf: string;
 }
 
-// Model Types
-export interface ModelInfo {
+// ============ Experiment Types ============
+export interface Experiment {
   id: string;
   name: string;
-  description: string;
-  icon: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  run_count: number;
 }
 
-export const AVAILABLE_MODELS: ModelInfo[] = [
-  { id: 'your_model', name: 'Your Model', description: 'Custom trained model', icon: 'cpu' },
-  { id: 'molt5', name: 'MolT5', description: 'Transformer for molecules', icon: 'beaker' },
-  { id: 'chemberta', name: 'ChemBERTa', description: 'BERT-based chemistry model', icon: 'atom' },
-];
-
-// Navigation Types
-export interface NavItem {
+export interface ExperimentCreate {
   name: string;
-  href: string;
-  icon: string;
+  description?: string;
 }
